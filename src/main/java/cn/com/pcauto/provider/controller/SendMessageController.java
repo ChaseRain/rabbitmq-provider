@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -18,6 +17,8 @@ import java.util.UUID;
 @RestController
 public class SendMessageController {
 
+    String createTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
     @Autowired
     RabbitTemplate rabbitTemplate; //使用RabbitTemplate,这提供了接收/发送等等方法
 
@@ -25,7 +26,6 @@ public class SendMessageController {
     public String sendDirectMessage(){
         String messageId = String.valueOf(UUID.randomUUID());
         String messageData = "test message,hello!";
-        String createTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         Map<String, Object> map = new HashMap<>();
         map.put("messageId",messageId);
         map.put("messageData",messageData);
@@ -33,8 +33,30 @@ public class SendMessageController {
 
         //将消息携带绑定键值：TestDirectRouting 发送到交换机TestDirectExchange
         rabbitTemplate.convertAndSend("TestDirectExchange","TestDirectRouting",map);
-        return "发送成功！";
+        return "发送成功！" + map;
     }
 
+    @GetMapping("/sendTopicMessage1")
+    public String sendTopicMessage1() {
+        String messageId = String.valueOf(UUID.randomUUID());
+        String messageData = "message: M A N ";
+        Map<String, Object> manMap = new HashMap<>();
+        manMap.put("messageId", messageId);
+        manMap.put("messageData", messageData);
+        manMap.put("createTime", createTime);
+        rabbitTemplate.convertAndSend("topicExchange", "topic.man", manMap);
+        return "ok";
+    }
 
+    @GetMapping("/sendTopicMessage2")
+    public String sendTopicMessage2() {
+        String messageId = String.valueOf(UUID.randomUUID());
+        String messageData = "message: woman is all ";
+        Map<String, Object> womanMap = new HashMap<>();
+        womanMap.put("messageId", messageId);
+        womanMap.put("messageData", messageData);
+        womanMap.put("createTime", createTime);
+        rabbitTemplate.convertAndSend("topicExchange", "topic.woman", womanMap);
+        return "ok";
+    }
 }
